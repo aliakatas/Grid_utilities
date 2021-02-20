@@ -1,2 +1,2 @@
-# Grid_utilities
+# Grid Utilities
 Utilities to explore-create grids.
