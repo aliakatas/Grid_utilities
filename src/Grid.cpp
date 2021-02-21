@@ -6,8 +6,10 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <algorithm>
 
-#define EPSILON 1e-6
+#define EPSILON   1e-6
+#define NODATA    -9999.9
 
 Grid::Grid(double xll_, double yll_, double angle_deg_, double dx_, double dy_, int nrows_, int ncols_) {
     this->lower_left.x = xll_;
@@ -25,9 +27,16 @@ Grid::Grid(double xll_, double yll_, double angle_deg_, double dx_, double dy_, 
     this->rotation_matrix = create_rotation_matrix(angle_deg_);
 
     memset(this->name, '\0', 100);
+    this->datax = nullptr;
+    this->datay = nullptr;
+    this->datamag = nullptr;
+    this->datadir = nullptr;
 }
 
 Grid::Grid(Grid& other) {
+    int rows = other.nrows;
+    int cols = other.ncols;
+
     this->lower_left = other.lower_left;
 
     this->angle_deg = other.angle_deg;
@@ -36,12 +45,44 @@ Grid::Grid(Grid& other) {
     this->dx = other.dx;
     this->dy = other.dy;
 
-    this->nrows = other.nrows;
-    this->ncols = other.ncols;
+    this->nrows = rows;
+    this->ncols = cols;
 
     this->rotation_matrix = create_rotation_matrix(other.get_angle_deg());
 
     strncpy(this->name, other.get_name(), 100);
+
+    size_t data_size = rows * cols * sizeof(double);
+    if (other.datax) {
+        this->datax = (double*)malloc(data_size);
+        memcpy(this->datax, other.datax, data_size);
+    }
+
+    if (other.datay) {
+        this->datay = (double*)malloc(data_size);
+        memcpy(this->datay, other.datay, data_size);
+    }
+
+    if (other.datamag) {
+        this->datamag = (double*)malloc(data_size);
+        memcpy(this->datamag, other.datamag, data_size);
+    }
+
+    if (other.datadir) {
+        this->datadir = (double*)malloc(data_size);
+        memcpy(this->datadir, other.datadir, data_size);
+    }
+}
+
+Grid::~Grid() {
+    if (this->datax)
+        free(this->datax);
+    if (this->datay)
+        free(this->datay);
+    if (this->datamag)
+        free(this->datamag);
+    if (this->datadir)
+        free(this->datadir);
 }
 
 Node Grid::get_lower_left() {
@@ -105,7 +146,7 @@ Grid* Grid::get_bounding_box(double scale) {
 }
 
 char* Grid::get_name() {
-    char* out = malloc(strlen(this->name) + 1);
+    char* out = (char*)malloc(strlen(this->name) + 1);
     memset(out, '\0', strlen(this->name) + 1);
     strncpy(out, this->name, strlen(this->name));
     return out;
@@ -126,3 +167,62 @@ void Grid::display_info() {
     printf("           Size :: (%d, %d) \n", this->nrows, this->ncols);
     printf(" Rotation angle :: %f deg \n", this->angle_deg);
 }
+
+bool Grid::allocate_x() {
+    this->datax = (double*)malloc(this->nrows * this->ncols * sizeof(double));
+    if (!this->datax)
+        return false;
+
+    std::fill_n(this->datax, this->nrows * this->ncols, NODATA);
+    return true;
+}
+
+bool Grid::allocate_y() {
+    this->datay = (double*)malloc(this->nrows * this->ncols * sizeof(double));
+    if (!this->datay)
+        return false;
+
+    std::fill_n(this->datay, this->nrows * this->ncols, NODATA);
+    return true;
+}
+
+bool Grid::allocate_mag() {
+    this->datamag = (double*)malloc(this->nrows * this->ncols * sizeof(double));
+    if (!this->datamag)
+        return false;
+
+    std::fill_n(this->datamag, this->nrows * this->ncols, NODATA);
+    return true;
+}
+
+bool Grid::allocate_dir() {
+    this->datadir = (double*)malloc(this->nrows * this->ncols * sizeof(double));
+    if (!this->datadir)
+        return false;
+
+    std::fill_n(this->datadir, this->nrows * this->ncols, NODATA);
+    return true;
+}
+
+bool Grid::allocate_data() {
+    if (!this->allocate_x())
+        return false;
+    if (!this->allocate_y())
+        return false;
+    if (!this->allocate_mag())
+        return false;
+    if (!this->allocate_dir())
+        return false;
+    return true;
+}
+
+
+
+
+
+
+
+
+
+
+
