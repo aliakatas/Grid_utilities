@@ -2,6 +2,7 @@
 #define GRID_H
 
 #include "Node.h"
+#include "Neighbours.h"
 
 class Grid {
 private:
@@ -18,6 +19,9 @@ private:
     double* datay;
     double* datamag;
     double* datadir;
+
+    void assign_to_neighbour4(Neighbours4& neighbours, int nid, int row, int col, const Node& node);
+    void assign_to_neighbour16(Neighbours16& neighbours, int nid, int row, int col, const Node& node);
 
 public:
     Grid(double xll_, double yll_, double angle_deg_, double dx_, double dy_, int nrows_, int ncols_);
@@ -36,12 +40,15 @@ public:
     void set_name(const char* name_);
 
     void display_info();
-    
+
     bool allocate_x();
     bool allocate_y();
     bool allocate_mag();
     bool allocate_dir();
     bool allocate_data();
+
+    void get_neighbours4(Neighbours4& neighbours, const Node& node);
+    void get_neighbours16(Neighbours16& neighbours, const Node& node);
 
 };
 

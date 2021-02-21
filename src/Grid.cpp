@@ -1,6 +1,7 @@
 #include "Grid.h"
 #include "geometry_utilities.h"
 #include "grid_utilities.h"
+#include "Neighbours.h"
 
 #include <math.h>
 #include <string.h>
@@ -8,8 +9,10 @@
 #include <stdio.h>
 #include <algorithm>
 
-#define EPSILON   1e-6
-#define NODATA    -9999.9
+#define EPSILON     1e-6
+#define NODATA      -9999.9
+#define MAX_WEIGHT  4.
+#define NO_INDEX    -100
 
 Grid::Grid(double xll_, double yll_, double angle_deg_, double dx_, double dy_, int nrows_, int ncols_) {
     this->lower_left.x = xll_;
@@ -216,9 +219,81 @@ bool Grid::allocate_data() {
     return true;
 }
 
+void Grid::get_neighbours4(Neighbours4& neighbours, const Node& node) {
+    double xtemp = node.x - this->lower_left.x;
+    double ytemp = node.y - this->lower_left.y;
 
+    double xratio = xtemp / dx;
+    double yratio = ytemp / dy;
 
+    int icol = floor(xratio);
+    int icol_next = ceil(xratio);
 
+    int irow = ceil(yratio);
+    int irow_next = ceil(yratio);
+
+    int rows[4] = {irow, irow, irow_next, irow_next};
+    int cols[4] = {icol, icol_next, icol, icol_next};
+
+    for (auto i = 0; i < 4; ++i)
+        this->assign_to_neighbour4(neighbours, i, rows[i], cols[i], node);
+}
+
+void Grid::get_neighbours16(Neighbours16& neighbours, const Node& node) {
+    double xtemp = node.x - this->lower_left.x;
+    double ytemp = node.y - this->lower_left.y;
+
+    double xratio = xtemp / dx;
+    double yratio = ytemp / dy;
+
+    int icol = floor(xratio);
+    int icol_next = ceil(xratio);
+
+    int irow = ceil(yratio);
+    int irow_next = ceil(yratio);
+
+    int rows[16] = {irow - 1, irow, irow_next, irow_next + 1,
+                    irow - 1, irow, irow_next, irow_next + 1,
+                    irow - 1, irow, irow_next, irow_next + 1,
+                    irow - 1, irow, irow_next, irow_next + 1};
+    int cols[16] = {icol - 1, icol - 1, icol - 1, icol - 1,
+                    icol, icol, icol, icol,
+                    icol_next, icol_next, icol_next, icol_next,
+                    icol_next + 1, icol_next + 1, icol_next + 1, icol_next + 1};
+
+    for (auto i = 0; i < 16; ++i)
+        this->assign_to_neighbour16(neighbours, i, rows[i], cols[i], node);
+}
+
+void Grid::assign_to_neighbour4(Neighbours4& neighbours, int nid, int row, int col, const Node& node) {
+    Node temp_node;
+    bool ok = this->get_node(row, col, temp_node);
+    if (ok) {
+        neighbours.idx[nid] = row * this->ncols + col;
+        double d = distance_node_to_node(node.x, node.y, temp_node.x, temp_node.y);
+        if (d < 10. * EPSILON)
+            neighbours.weight[nid] = MAX_WEIGHT;
+        else
+            neighbours.weight[nid] = 1. / d;
+    }
+    else
+        neighbours.idx[nid]  = NO_INDEX;
+}
+
+void Grid::assign_to_neighbour16(Neighbours16& neighbours, int nid, int row, int col, const Node& node) {
+    Node temp_node;
+    bool ok = this->get_node(row, col, temp_node);
+    if (ok) {
+        neighbours.idx[nid] = row * this->ncols + col;
+        double d = distance_node_to_node(node.x, node.y, temp_node.x, temp_node.y);
+        if (d < 10. * EPSILON)
+            neighbours.weight[nid] = MAX_WEIGHT;
+        else
+            neighbours.weight[nid] = 1. / d;
+    }
+    else
+        neighbours.idx[nid]  = NO_INDEX;
+}
 
 
 
