@@ -1,7 +1,7 @@
 #include "grid_utilities.h"
 #include "Node.h"
 
-Node rotate_coordinates(Node node, const double** rotation_matrix, Node about_point) {
+Node rotate_coordinates(Node node, double** rotation_matrix, Node about_point) {
     // translate point
     node.x -= about_point.x;
     node.y -= about_point.y;

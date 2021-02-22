@@ -3,6 +3,6 @@
 
 #include "Node.h"
 
-Node rotate_coordinates(Node node, const double** rotation_matrix, Node about_point);
+Node rotate_coordinates(Node node, double** rotation_matrix, Node about_point);
 
 #endif

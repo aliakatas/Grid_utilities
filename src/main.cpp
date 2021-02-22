@@ -3,12 +3,11 @@
 
 #include <stdio.h>
 
-void print_easy(const Grid& a_grid, int row, int col) {
+void print_easy(Grid& a_grid, int row, int col) {
     Node a_node;
     bool ok = a_grid.get_node(row, col, a_node);
-    if (ok) {
+    if (ok)
         printf("Node at (%d, %d) :: (%f, %f) \n", row, col, a_node.x, a_node.y);
-    }
     else
         printf("No node at (%d, %d) \n", row, col);
 }
